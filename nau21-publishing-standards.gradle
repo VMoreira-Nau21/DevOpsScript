@@ -7,7 +7,7 @@ buildscript {
     }
 }
 
-apply plugin: 'org.hibernate.build.maven-repo-auth'
+apply plugin: "org.hibernate.build.maven-repo-auth:3.0.4"
 apply plugin: 'maven-publish'
 
 allprojects {
