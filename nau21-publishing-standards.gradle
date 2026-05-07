@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:3.0.3'
+    }
+}
+
+apply plugin: 'org.hibernate.build.maven-repo-auth'
+apply plugin: 'maven-publish'
+
+allprojects {
+    repositories {
+        maven {
+            name = "nau21-release"
+            url = uri("https://nau21dl.pkgs.visualstudio.com/_packaging/release/maven/v1")
+        }
+        maven {
+            name = "nau21-snapshot"
+            url = uri("https://nau21dl.pkgs.visualstudio.com/_packaging/snapshots/maven/v1")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            def v = version.toString()
+            def vUpper = v.toUpperCase()
+
+            def releaseQualifiers = ['-RC', '-BETA', '-ALPHA', '-RELEASE', '-M']
+
+            def isSnapshot = v.equalsIgnoreCase("unspecified") ||
+                    vUpper.endsWith("-SNAPSHOT") ||
+                    (v.contains("-") && !releaseQualifiers.any { vUpper.contains(it) })
+
+            name = isSnapshot ? "nau21-snapshot" : "nau21-release"
+            url = isSnapshot
+                    ? uri("https://nau21dl.pkgs.visualstudio.com/_packaging/snapshots/maven/v1")
+                    : uri("https://nau21dl.pkgs.visualstudio.com/_packaging/release/maven/v1")
+        }
+    }
+}
+
+plugins.withType(JavaPlugin) {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+            }
+        }
+    }
+}
